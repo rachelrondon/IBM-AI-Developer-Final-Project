@@ -11,8 +11,7 @@ def home():
 def emotion_detector_route():
     text_to_analyze = request.args.get('textToAnalyze')
     if not text_to_analyze:
-        return {"error": "No text provided"}, 400
-
+        return jsonify({"message": "Invalid text! Please try again"}), 400
     # Call the perform_emotion_detection function
     emotions = perform_emotion_detection(text_to_analyze)
 
@@ -26,15 +25,18 @@ def emotion_detector_route():
     emotions = {key: convert_value(value) for key, value in emotions.items()}
 
     # Determine the dominant emotion
-    dominant_emotion = max(emotions, key=emotions.get)
+    dominant_emotion = max(emotions, key=emotions.get, default=None)
     emotions["dominant_emotion"] = dominant_emotion
 
-    # Return the emotions along with the dominant emotion in the response
-    return jsonify({
-        'For the given statement, the system response is': emotions,
-        'The dominant emotion is': dominant_emotion
-    })
-
+    if not text_to_analyze:
+        return jsonify({
+            "Invalid text! Please try again"
+        })
+    else:
+        return jsonify({
+            'For the given statement, the system response is': emotions,
+            'The dominant emotion is': dominant_emotion
+        })    
 
 def perform_emotion_detection(text):
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
